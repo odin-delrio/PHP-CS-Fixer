@@ -35,11 +35,10 @@ class HeaderCommentFixer extends AbstractFixer
     public static function setHeader($header)
     {
         self::$header = trim((string) $header);
+        self::$headerComment = '';
 
-        if (strlen(self::$header)) {
+        if ('' !== self::$header) {
             self::$headerComment = self::encloseTextInComment(self::$header);
-        } else {
-            self::$headerComment = '';
         }
     }
 
@@ -95,7 +94,7 @@ class HeaderCommentFixer extends AbstractFixer
         foreach ($lines as $line) {
             $comment .= rtrim(' * '.$line)."\n";
         }
-        $comment .= " */";
+        $comment .= ' */';
 
         return $comment;
     }
@@ -143,7 +142,7 @@ class HeaderCommentFixer extends AbstractFixer
      */
     private function replaceHeaderComment(Tokens $tokens, $oldHeaderIndex)
     {
-        if (!strlen(self::$headerComment)) {
+        if ('' === self::$headerComment) {
             if ($oldHeaderIndex) {
                 $tokens->clearRange($oldHeaderIndex, $oldHeaderIndex + 1);
             }

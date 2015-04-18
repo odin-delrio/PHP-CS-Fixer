@@ -21,11 +21,12 @@ use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\CS\Config\Config;
 use Symfony\CS\ConfigInterface;
 use Symfony\CS\Console\ConfigurationResolver;
+use Symfony\CS\Console\Output\ProcessOutput;
 use Symfony\CS\ErrorsManager;
 use Symfony\CS\Fixer;
-use Symfony\CS\FixerFileProcessedEvent;
 use Symfony\CS\FixerInterface;
-use Symfony\CS\LintManager;
+use Symfony\CS\Linter\Linter;
+use Symfony\CS\Linter\UnavailableLinterException;
 use Symfony\CS\Utils;
 
 /**
@@ -78,14 +79,13 @@ class FixCommand extends Command
     {
         $this->defaultConfig = $config ?: new Config();
         $this->eventDispatcher = new EventDispatcher();
-        $this->errorsManager = new ErrorsManager();
-        $this->stopwatch = new Stopwatch();
 
         $this->fixer = $fixer ?: new Fixer();
         $this->fixer->registerBuiltInFixers();
         $this->fixer->registerBuiltInConfigs();
-        $this->fixer->setStopwatch($this->stopwatch);
-        $this->fixer->setErrorsManager($this->errorsManager);
+
+        $this->errorsManager = $this->fixer->getErrorsManager();
+        $this->stopwatch = $this->fixer->getStopwatch();
 
         parent::__construct();
     }
@@ -105,6 +105,7 @@ class FixCommand extends Command
                     new InputOption('dry-run', '', InputOption::VALUE_NONE, 'Only shows which files would have been modified'),
                     new InputOption('level', '', InputOption::VALUE_REQUIRED, 'The level of fixes (can be psr0, psr1, psr2, or symfony (formerly all))', null),
                     new InputOption('using-cache', '', InputOption::VALUE_REQUIRED, 'Does cache should be used (can be yes or no)', null),
+                    new InputOption('cache-file', '', InputOption::VALUE_REQUIRED, 'The path to the cache file'),
                     new InputOption('fixers', '', InputOption::VALUE_REQUIRED, 'A list of fixers to run'),
                     new InputOption('diff', '', InputOption::VALUE_NONE, 'Also produce diff for each file'),
                     new InputOption('format', '', InputOption::VALUE_REQUIRED, 'To output results in other formats', 'txt'),
@@ -113,12 +114,14 @@ class FixCommand extends Command
             ->setDescription('Fixes a directory or a file')
             ->setHelp(<<<EOF
 The <info>%command.name%</info> command tries to fix as much coding standards
-problems as possible on a given file or directory:
+problems as possible on a given file or files in a given directory and its subdirectories:
 
     <info>php %command.full_name% /path/to/dir</info>
     <info>php %command.full_name% /path/to/file</info>
 
-The <comment>--verbose</comment> option show applied fixers. When using ``txt`` format (default one) it will also displays progress notification.
+The <comment>--format</comment> option can be used to set the output format of the results; ``txt`` (default one), ``xml`` or ``json``.
+
+The <comment>--verbose</comment> option will show the applied fixers. When using the ``txt`` format it will also displays progress notifications.
 
 The <comment>--level</comment> option limits the fixers to apply on the
 project:
@@ -142,12 +145,12 @@ using <comment>-name_of_fixer</comment>:
 
     <info>php %command.full_name% /path/to/dir --fixers=-short_tag,-indentation</info>
 
-When using combination with exact and blacklist fixers, apply exact fixers along with above blacklisted result:
+When using combinations of exact and blacklist fixers, applying exact fixers along with above blacklisted results:
 
     <info>php php-cs-fixer.phar fix /path/to/dir --fixers=linefeed,-short_tag</info>
 
 A combination of <comment>--dry-run</comment> and <comment>--diff</comment> will
-display summary of proposed fixes, leaving your files unchanged.
+display a summary of proposed fixes, leaving your files unchanged.
 
 The command can also read from standard input, in which case it won't
 automatically fix anything:
@@ -175,10 +178,13 @@ fixed but without actually modifying them:
 Instead of using command line options to customize the fixer, you can save the
 project configuration in a <comment>.php_cs.dist</comment> file in the root directory
 of your project. The file must return an instance of ``Symfony\CS\ConfigInterface``,
-which lets you configure the fixers, the level, the files, and directories that
+which lets you configure the fixers, the level, the files and directories that
 need to be analyzed. You may also create <comment>.php_cs</comment> file, which is
-the local configuration that will be used instead of the project configuration, it
+the local configuration that will be used instead of the project configuration. It
 is a good practice to add that file into your <comment>.gitignore</comment> file.
+With the <comment>--config-file</comment> option you can specify the path to the
+<comment>.php_cs</comment> file.
+
 The example below will add two contrib fixers to the default list of PSR2-level fixers:
 
     <?php
@@ -195,7 +201,7 @@ The example below will add two contrib fixers to the default list of PSR2-level 
 
     ?>
 
-If you want complete control over which fixers you use, you may use the empty level and
+If you want complete control over which fixers you use, you can use the empty level and
 then specify all fixers to be used:
 
     <?php
@@ -242,26 +248,24 @@ The ``psr2`` level is set by default, you can also change the default level:
 
 In combination with these config and command line options, you can choose various usage.
 
-For example, default level is ``psr2``, but if you also don't want to use
+For example, the default level is ``psr2``, but if you don't want to use
 the ``psr0`` fixer, you can specify the ``--fixers="-psr0"`` option.
 
 But if you use the ``--fixers`` option with only exact fixers,
 only those exact fixers are enabled whether or not level is set.
 
-With the <comment>--config-file</comment> option you can specify the path to the
-<comment>.php_cs</comment> file.
-
-By using ``--using-cache`` option you can set if caching
+By using ``--using-cache`` option with yes or no you can set if the caching
 mechanism should be used.
 
 Caching
 -------
 
 The caching mechanism is enabled by default. This will speed up further runs by
-fixing only files that were modified. Tool will fix all files if tool version
-changed or fixers list changed.
+fixing only files that were modified since the last run. The tool will fix all
+files if the tool version has changed or the list of fixers has changed.
 Cache is supported only for tool downloaded as phar file or installed via
 composer.
+
 Cache can be disabled via ``--using-cache`` option or config file:
 
     <?php
@@ -271,6 +275,46 @@ Cache can be disabled via ``--using-cache`` option or config file:
     ;
 
     ?>
+
+Cache file can be specified via ``--cache-file`` option or config file:
+
+    <?php
+
+    return Symfony\CS\Config\Config::create()
+        ->setCacheFile(__DIR__.'/.php_cs.cache')
+    ;
+
+    ?>
+
+Using PHP CS Fixer on Travis
+----------------------------
+
+Require ``fabpot/php-cs-fixer`` as a `dev`` dependency:
+
+    $ ./composer.phar require --dev fabpot/php-cs-fixer
+
+Create a build file to run ``php-cs-fixer`` on Travis. It's advisable to create a dedicated directory
+for PHP CS Fixer cache files and have Travis cache it between builds.
+
+    <?yml
+
+    language: php
+    php:
+        - 5.5
+    sudo: false
+    cache:
+        directories:
+            - "\$HOME/.composer/cache"
+            - "\$HOME/.php-cs-fixer"
+    before_script:
+        - mkdir -p "\$HOME/.php-cs-fixer"
+    script:
+        - vendor/bin/php-cs-fixer fix --cache-file "\$HOME/.php-cs-fixer/.php_cs.cache" --dry-run --diff --verbose
+
+    ?>
+
+Note: This will only trigger a build if you have a subscription for Travis
+or are using their free open source plan.
 EOF
             );
     }
@@ -280,6 +324,7 @@ EOF
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $verbosity = $output->getVerbosity();
         $resolver = new ConfigurationResolver();
         $resolver
             ->setCwd(getcwd())
@@ -292,13 +337,14 @@ EOF
                 'level' => $input->getOption('level'),
                 'fixers' => $input->getOption('fixers'),
                 'path' => $input->getArgument('path'),
-                'progress' => $output->isVerbose() && 'txt' === $input->getOption('format'),
+                'progress'  => (OutputInterface::VERBOSITY_VERBOSE <= $verbosity) && 'txt' === $input->getOption('format'),
                 'using-cache' => $input->getOption('using-cache'),
+                'cache-file' => $input->getOption('cache-file'),
             ))
             ->resolve()
         ;
 
-        $config     = $resolver->getConfig();
+        $config = $resolver->getConfig();
         $configFile = $resolver->getConfigFile();
 
         if ($configFile && 'txt' === $input->getOption('format')) {
@@ -308,18 +354,20 @@ EOF
         // register custom fixers from config
         $this->fixer->registerCustomFixers($config->getCustomFixers());
         if ($config->usingLinter()) {
-            $this->fixer->setLintManager(new LintManager());
+            try {
+                $this->fixer->setLinter(new Linter($config->getPhpExecutable()));
+            } catch (UnavailableLinterException $e) {
+                if ($configFile && 'txt' === $input->getOption('format')) {
+                    $output->writeln('Unable to use linter, can not find PHP executable');
+                }
+            }
         }
 
         $showProgress = $resolver->getProgress();
 
         if ($showProgress) {
-            $fileProcessedEventListener = function (FixerFileProcessedEvent $event) use ($output) {
-                $output->write($event->getStatusAsString());
-            };
-
             $this->fixer->setEventDispatcher($this->eventDispatcher);
-            $this->eventDispatcher->addListener(FixerFileProcessedEvent::NAME, $fileProcessedEventListener);
+            $progressOutput = new ProcessOutput($this->eventDispatcher);
         }
 
         $this->stopwatch->start('fixFiles');
@@ -327,21 +375,10 @@ EOF
         $this->stopwatch->stop('fixFiles');
 
         if ($showProgress) {
+            $progressOutput->printLegend();
             $this->fixer->setEventDispatcher(null);
-            $this->eventDispatcher->removeListener(FixerFileProcessedEvent::NAME, $fileProcessedEventListener);
-            $output->writeln('');
-
-            $legend = array();
-            foreach (FixerFileProcessedEvent::getStatusMap() as $status) {
-                if ($status['symbol'] && $status['description']) {
-                    $legend[] = $status['symbol'].'-'.$status['description'];
-                }
-            }
-
-            $output->writeln('Legend: '.implode(', ', array_unique($legend)));
         }
 
-        $verbosity = $output->getVerbosity();
         $i = 1;
 
         switch ($input->getOption('format')) {
@@ -501,7 +538,7 @@ EOF
             }
         }
 
-        return empty($changed) ? 0 : 1;
+        return !$resolver->isDryRun() || empty($changed) ? 0 : 3;
     }
 
     protected function getFixersHelp()

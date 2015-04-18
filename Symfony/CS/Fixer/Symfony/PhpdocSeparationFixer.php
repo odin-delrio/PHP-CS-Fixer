@@ -75,6 +75,8 @@ class PhpdocSeparationFixer extends AbstractFixer
      * Make sure the annotations are correctly separated.
      *
      * @param DocBlock $doc
+     *
+     * @return string
      */
     private function fixAnnotations(DocBlock $doc)
     {
@@ -109,7 +111,7 @@ class PhpdocSeparationFixer extends AbstractFixer
         $pos = $first->getEnd();
         $final = $second->getStart();
 
-        for (++$pos; $pos < $final; ++$pos) {
+        for ($pos = $pos + 1; $pos < $final; ++$pos) {
             $doc->getLine($pos)->remove();
         }
     }
@@ -133,7 +135,7 @@ class PhpdocSeparationFixer extends AbstractFixer
             return;
         }
 
-        for (++$pos; $pos < $final; ++$pos) {
+        for ($pos = $pos + 1; $pos < $final; ++$pos) {
             $doc->getLine($pos)->remove();
         }
     }

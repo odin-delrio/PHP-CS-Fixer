@@ -44,7 +44,7 @@ class PhpdocTrimFixer extends AbstractFixer
      */
     public function getDescription()
     {
-        return 'Phpdocs should start and end with content, excluding the very fist and last line of the docblocks.';
+        return 'Phpdocs should start and end with content, excluding the very first and last line of the docblocks.';
     }
 
     /**
@@ -76,7 +76,7 @@ class PhpdocTrimFixer extends AbstractFixer
         foreach ($lines as $index => $line) {
             if (!$line->isTheStart()) {
                 // don't remove lines with content and don't entirely delete docblocks
-                if ($line->containsUsefulContent() || $total - $index < 3) {
+                if ($total - $index < 3 || $line->containsUsefulContent()) {
                     break;
                 }
 
@@ -103,7 +103,7 @@ class PhpdocTrimFixer extends AbstractFixer
         foreach ($lines as $index => $line) {
             if (!$line->isTheEnd()) {
                 // don't remove lines with content and don't entirely delete docblocks
-                if ($line->containsUsefulContent() || $total - $index < 3) {
+                if ($total - $index < 3 || $line->containsUsefulContent()) {
                     break;
                 }
 

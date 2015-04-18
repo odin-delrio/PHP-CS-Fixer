@@ -12,12 +12,12 @@
 namespace Symfony\CS\Fixer\Contrib;
 
 use Symfony\CS\AbstractFixer;
-use Symfony\CS\Tokenizer\Token;
 use Symfony\CS\Tokenizer\Tokens;
 use Symfony\CS\Tokenizer\TokensAnalyzer;
 
 /**
  * @author Sebastiaan Stok <s.stok@rollerscapes.net>
+ * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
  */
 class OrderedUseFixer extends AbstractFixer
 {
@@ -49,9 +49,7 @@ class OrderedUseFixer extends AbstractFixer
         // Now insert the new tokens, starting from the end
         foreach ($usesOrder as $index => $use) {
             $declarationTokens = Tokens::fromCode('<?php use '.$use[0].';');
-            $declarationTokens[0]->clear(); // clear `<?php`
-            $declarationTokens[1]->clear(); // clear `use`
-            $declarationTokens[2]->clear(); // clear `space`
+            $declarationTokens->clearRange(0, 2); // clear `<?php use `
             $declarationTokens[count($declarationTokens) - 1]->clear(); // clear `;`
             $declarationTokens->clearEmptyTokens();
 
@@ -81,6 +79,8 @@ class OrderedUseFixer extends AbstractFixer
      *
      * @param string[] $first
      * @param string[] $second
+     *
+     * @return int
      *
      * @internal
      */
@@ -112,7 +112,7 @@ class OrderedUseFixer extends AbstractFixer
 
             while ($index <= $endIndex) {
                 $token = $tokens[$index];
-                if ($token->equals(',') || $index === $endIndex) {
+                if ($index === $endIndex || $token->equals(',')) {
                     $indexes[$startIndex] = array($namespace, $startIndex, $index - 1);
                     $originalIndexes[] = $startIndex;
 

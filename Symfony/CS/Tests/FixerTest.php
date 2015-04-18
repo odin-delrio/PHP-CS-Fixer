@@ -185,16 +185,20 @@ class FixerTest extends \PHPUnit_Framework_TestCase
             array($fixers['double_arrow_multiline_whitespaces'], $fixers['align_double_arrow']),
             array($fixers['indentation'], $fixers['phpdoc_indent']),
             array($fixers['phpdoc_order'], $fixers['phpdoc_separation']),
+            array($fixers['phpdoc_no_access'], $fixers['phpdoc_separation']),
+            array($fixers['phpdoc_no_access'], $fixers['phpdoc_order']),
             array($fixers['phpdoc_no_empty_return'], $fixers['phpdoc_separation']),
             array($fixers['phpdoc_no_empty_return'], $fixers['phpdoc_order']),
             array($fixers['phpdoc_no_package'], $fixers['phpdoc_separation']),
             array($fixers['phpdoc_no_package'], $fixers['phpdoc_order']),
+            array($fixers['phpdoc_no_access'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_no_empty_return'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_no_package'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_separation'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_short_description'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_var_without_name'], $fixers['phpdoc_trim']),
             array($fixers['phpdoc_order'], $fixers['phpdoc_trim']),
+            array($fixers['unused_use'], $fixers['line_after_namespace']),
         );
 
         $docFixerNames = array_filter(
@@ -255,5 +259,26 @@ class FixerTest extends \PHPUnit_Framework_TestCase
         }
 
         return $cases;
+    }
+
+    public function testCanFixWithConfigInterfaceImplementation()
+    {
+        $config = $this->getMockBuilder('Symfony\CS\ConfigInterface')->getMock();
+
+        $config
+            ->expects($this->any())
+            ->method('getFixers')
+            ->willReturn(array())
+        ;
+
+        $config
+            ->expects($this->any())
+            ->method('getFinder')
+            ->willReturn(array())
+        ;
+
+        $fixer = new Fixer();
+
+        $fixer->fix($config);
     }
 }

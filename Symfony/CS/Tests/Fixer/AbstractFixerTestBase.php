@@ -45,25 +45,48 @@ abstract class AbstractFixerTestBase extends \PHPUnit_Framework_TestCase
 
         $fixer = $fixer ?: $this->getFixer();
         $file = $file ?: $this->getTestFile();
+        $fileIsSupported = $fixer->supports($file);
 
         if (null !== $input) {
             Tokens::clearCache();
             $tokens = Tokens::fromCode($input);
 
-            $fixResult = $fixer->fix($file, $tokens);
+            if ($fileIsSupported) {
+                $fixResult = $fixer->fix($file, $tokens);
+                $this->assertNull($fixResult, '->fix method must return null.');
+            }
 
-            $this->assertNull($fixResult, '->fix method should return null.');
+            $this->assertTrue($tokens->isChanged(), 'Tokens collection built on input code must be marked as changed after fixing.');
             $this->assertSame($expected, $tokens->generateCode(), 'Code build on input code must match expected code.');
-            $this->assertTrue($tokens->isChanged(), 'Tokens collection built on input code should be marked as changed after fixing.');
+
+            Tokens::clearCache();
+            $tokens->clearEmptyTokens();
+            $this->assertTokens(Tokens::fromCode($expected), $tokens);
         }
 
         Tokens::clearCache();
         $tokens = Tokens::fromCode($expected);
 
-        $fixResult = $fixer->fix($file, $tokens);
+        if ($fileIsSupported) {
+            $fixResult = $fixer->fix($file, $tokens);
+            $this->assertNull($fixResult, '->fix method must return null.');
+        }
 
-        $this->assertNull($fixResult, '->fix method should return null.');
+        $this->assertFalse($tokens->isChanged(), 'Tokens collection built on expected code must not be marked as changed after fixing.');
         $this->assertSame($expected, $tokens->generateCode(), 'Code build on expected code must not change.');
-        $this->assertFalse($tokens->isChanged(), 'Tokens collection built on expected code should not be marked as changed after fixing.');
+    }
+
+    private function assertTokens(Tokens $expectedTokens, Tokens $inputTokens)
+    {
+        foreach ($expectedTokens as $index => $expectedToken) {
+            $inputToken = $inputTokens[$index];
+
+            $this->assertTrue(
+                $expectedToken->equals($inputToken),
+                sprintf('The token at index %d must be %s, got %s', $index, $expectedToken->toJson(), $inputToken->toJson())
+            );
+        }
+
+        $this->assertEquals($expectedTokens->count(), $inputTokens->count(), 'The collection must have the same length than the expected one.');
     }
 }

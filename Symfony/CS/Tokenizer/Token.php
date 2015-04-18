@@ -96,7 +96,7 @@ class Token
      */
     public function equals($other, $caseSensitive = true)
     {
-        $otherPrototype = $other instanceof Token ? $other->getPrototype() : $other;
+        $otherPrototype = $other instanceof self ? $other->getPrototype() : $other;
 
         if ($this->isArray() !== is_array($otherPrototype)) {
             return false;
@@ -249,7 +249,7 @@ class Token
                 'T_NAMESPACE', 'T_NEW', 'T_PRINT', 'T_PRIVATE', 'T_PROTECTED', 'T_PUBLIC', 'T_REQUIRE',
                 'T_REQUIRE_ONCE', 'T_RETURN', 'T_STATIC', 'T_SWITCH', 'T_THROW', 'T_TRAIT', 'T_TRY',
                 'T_UNSET', 'T_USE', 'T_VAR', 'T_WHILE', 'T_YIELD',
-                'CT_USE_TRAIT', 'CT_USE_LAMBDA',
+                'CT_ARRAY_TYPEHINT', 'CT_CLASS_CONSTANT', 'CT_CONST_IMPORT', 'CT_FUNCTION_IMPORT', 'CT_NAMESPACE_OPERATOR', 'CT_USE_TRAIT', 'CT_USE_LAMBDA',
             );
 
             foreach ($keywordsStrings as $keywordName) {
@@ -374,28 +374,17 @@ class Token
     }
 
     /**
-     * Check if token is one of structure alternative end syntax (T_END...).
-     *
-     * @return bool
-     */
-    public function isStructureAlternativeEnd()
-    {
-        static $tokens = array(T_ENDDECLARE, T_ENDFOR, T_ENDFOREACH, T_ENDIF, T_ENDSWITCH, T_ENDWHILE, T_END_HEREDOC);
-
-        return $this->isGivenKind($tokens);
-    }
-
-    /**
      * Check if token is a whitespace.
      *
-     * @param array  $opts                array of extra options
-     * @param string $opts['whitespaces'] string determining whitespaces chars, default is " \t\n\r\0\x0B"
+     * @param null|string $whitespaces whitespaces characters, default is " \t\n\r\0\x0B"
      *
      * @return bool
      */
-    public function isWhitespace(array $opts = array())
+    public function isWhitespace($whitespaces = " \t\n\r\0\x0B")
     {
-        $whitespaces = isset($opts['whitespaces']) ? $opts['whitespaces'] : " \t\n\r\0\x0B";
+        if (null === $whitespaces) {
+            $whitespaces = " \t\n\r\0\x0B";
+        }
 
         if ($this->isArray && !$this->isGivenKind(T_WHITESPACE)) {
             return false;
@@ -411,7 +400,7 @@ class Token
      */
     public function override($other)
     {
-        $prototype = $other instanceof Token ? $other->getPrototype() : $other;
+        $prototype = $other instanceof self ? $other->getPrototype() : $other;
 
         if ($this->equals($prototype)) {
             return;
@@ -439,6 +428,13 @@ class Token
      */
     public function setContent($content)
     {
+        // setting empty content is clearing the token
+        if ('' === $content) {
+            $this->clear();
+
+            return;
+        }
+
         if ($this->content === $content) {
             return;
         }

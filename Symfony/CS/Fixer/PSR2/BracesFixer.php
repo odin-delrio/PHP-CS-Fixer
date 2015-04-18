@@ -89,6 +89,16 @@ class BracesFixer extends AbstractFixer
 
             $tokens[$afterParenthesisIndex] = $tokenTmp;
             $tokens->insertAt($afterParenthesisIndex + 1, new Token(array(T_WHITESPACE, "\n")));
+
+            // Collapse whitespace tokens if the last moved token is a whitespace and the next token is one too.
+            // + 1 is needed to get the last moved token because of the inserted token.
+            $lastMovedToken = $tokens[$afterCommentIndex + 1];
+            $followingToken = $tokens[$afterCommentIndex + 2];
+
+            if ($lastMovedToken->isWhitespace() && $followingToken->isWhitespace()) {
+                $followingToken->setContent($lastMovedToken->getContent().$followingToken->getContent());
+                $lastMovedToken->clear();
+            }
         }
     }
 
@@ -265,14 +275,14 @@ class BracesFixer extends AbstractFixer
                 // set indent only if it is not a case, when comment is following { in same line
                 if (
                     !$nextNonWhitespaceToken->isComment()
-                    || !($nextToken->isWhitespace() && $nextToken->isWhitespace(array('whitespaces' => " \t")))
+                    || !($nextToken->isWhitespace() && $nextToken->isWhitespace(" \t"))
                     && substr_count($nextToken->getContent(), "\n") === 1 // preserve blank lines
                 ) {
                     $tokens->ensureWhitespaceAtIndex($startBraceIndex + 1, 0, "\n".$indent.'    ');
                 }
             } else {
                 $nextToken = $tokens[$startBraceIndex + 1];
-                if ($nextToken->isWhitespace(array('whitespaces' => " \t")) || !$nextToken->isWhitespace()) {
+                if ($nextToken->isWhitespace(" \t") || !$nextToken->isWhitespace()) {
                     $tokens->ensureWhitespaceAtIndex($startBraceIndex + 1, 0, "\n".$indent.'    ');
                 }
             }

@@ -48,7 +48,7 @@ class NamespaceNoLeadingWhitespaceFixer extends AbstractFixer
                 $beforeBeforeNamespace = $tokens[$index - 2];
 
                 if (self::endsWithWhitespace($beforeBeforeNamespace->getContent())) {
-                    $beforeNamespace->setContent('');
+                    $beforeNamespace->clear();
                 } else {
                     $beforeNamespace->setContent(' ');
                 }
@@ -68,6 +68,10 @@ class NamespaceNoLeadingWhitespaceFixer extends AbstractFixer
 
     private static function endsWithWhitespace($str)
     {
-        return strlen($str) > 0 && ctype_space(substr($str, -1));
+        if ('' === $str) {
+            return false;
+        }
+
+        return '' === trim(substr($str, -1));
     }
 }

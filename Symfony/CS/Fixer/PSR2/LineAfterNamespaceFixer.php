@@ -37,7 +37,7 @@ class LineAfterNamespaceFixer extends AbstractFixer
             $semicolonIndex = $tokens->getNextTokenOfKind($index, array(';', '{'));
             $semicolonToken = $tokens[$semicolonIndex];
 
-            if (!$semicolonToken->equals(';') || !isset($tokens[$semicolonIndex + 1])) {
+            if (!isset($tokens[$semicolonIndex + 1]) || !$semicolonToken->equals(';')) {
                 continue;
             }
 
@@ -57,5 +57,14 @@ class LineAfterNamespaceFixer extends AbstractFixer
     public function getDescription()
     {
         return 'There MUST be one blank line after the namespace declaration.';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPriority()
+    {
+        // should be run after the UnusedUseFixer
+        return -20;
     }
 }

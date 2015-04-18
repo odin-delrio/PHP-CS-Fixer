@@ -357,6 +357,46 @@ EOF;
         $this->makeTest($expected, $input);
     }
 
+    public function testVariableName()
+    {
+        $expected = <<<'EOF'
+<?php
+
+
+$bar = null;
+EOF;
+
+        $input = <<<'EOF'
+<?php
+
+use Foo\Bar;
+
+$bar = null;
+EOF;
+
+        $this->makeTest($expected, $input);
+    }
+
+    public function testNamespacePart()
+    {
+        $expected = <<<'EOF'
+<?php
+
+
+new \Baz\Bar();
+EOF;
+
+        $input = <<<'EOF'
+<?php
+
+use Foo\Bar;
+
+new \Baz\Bar();
+EOF;
+
+        $this->makeTest($expected, $input);
+    }
+
     /**
      * @dataProvider providerUseInString
      */

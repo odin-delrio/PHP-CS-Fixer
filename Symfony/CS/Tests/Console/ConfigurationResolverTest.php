@@ -102,14 +102,14 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
 
     public function testCwd()
     {
-        $this->resolver->setCwd("foo");
+        $this->resolver->setCwd('foo');
 
         $classReflection = new \ReflectionClass($this->resolver);
         $propertyReflection = $classReflection->getProperty('cwd');
         $propertyReflection->setAccessible(true);
         $property = $propertyReflection->getValue($this->resolver);
 
-        $this->assertSame("foo", $property);
+        $this->assertSame('foo', $property);
     }
 
     protected function makeFixersTest($expectedFixers, $resolvedFixers)
@@ -371,9 +371,9 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
     public function provideResolveConfigByNameCases()
     {
         return array(
-            array("\\Symfony\\CS\\Config\\Config", 'default'),
-            array("\\Symfony\\CS\\Config\\MagentoConfig", 'magento'),
-            array("\\Symfony\\CS\\Config\\Symfony23Config", 'sf23'),
+            array('\\Symfony\\CS\\Config\\Config', 'default'),
+            array('\\Symfony\\CS\\Config\\MagentoConfig', 'magento'),
+            array('\\Symfony\\CS\\Config\\Symfony23Config', 'sf23'),
         );
     }
 
@@ -395,7 +395,7 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
             ->resolve();
 
         $this->assertNull($this->resolver->getConfigFile());
-        $this->assertInstanceOf("\\Symfony\\CS\\Config\\Config", $this->resolver->getConfig());
+        $this->assertInstanceOf('\\Symfony\\CS\\Config\\Config', $this->resolver->getConfig());
     }
 
     public function testResolveConfigFileByPathOfFile()
@@ -407,7 +407,7 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
             ->resolve();
 
         $this->assertSame($dir.DIRECTORY_SEPARATOR.'.php_cs.dist', $this->resolver->getConfigFile());
-        $this->assertInstanceOf("\\Symfony\\CS\\Config\\MagentoConfig", $this->resolver->getConfig());
+        $this->assertInstanceOf('\\Symfony\\CS\\Config\\MagentoConfig', $this->resolver->getConfig());
     }
 
     public function testResolveConfigFileSpecified()
@@ -419,7 +419,7 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
             ->resolve();
 
         $this->assertSame($file, $this->resolver->getConfigFile());
-        $this->assertInstanceOf("\\Symfony\\CS\\Config\\MagentoConfig", $this->resolver->getConfig());
+        $this->assertInstanceOf('\\Symfony\\CS\\Config\\MagentoConfig', $this->resolver->getConfig());
     }
 
     /**
@@ -442,17 +442,17 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 $dirBase.'case_1'.DIRECTORY_SEPARATOR.'.php_cs.dist',
-                "\\Symfony\\CS\\Config\\MagentoConfig",
+                '\\Symfony\\CS\\Config\\MagentoConfig',
                 $dirBase.'case_1',
             ),
             array(
                 $dirBase.'case_2'.DIRECTORY_SEPARATOR.'.php_cs',
-                "\\Symfony\\CS\\Config\\MagentoConfig",
+                '\\Symfony\\CS\\Config\\MagentoConfig',
                 $dirBase.'case_2',
             ),
             array(
                 $dirBase.'case_3'.DIRECTORY_SEPARATOR.'.php_cs',
-                "\\Symfony\\CS\\Config\\MagentoConfig",
+                '\\Symfony\\CS\\Config\\MagentoConfig',
                 $dirBase.'case_3',
             ),
         );
@@ -565,5 +565,50 @@ class ConfigurationResolverTest extends \PHPUnit_Framework_TestCase
             ->resolve();
 
         $this->assertFalse($this->config->usingCache());
+    }
+
+    public function testResolveCacheFileWithoutConfigAndOption()
+    {
+        $default = $this->config->getCacheFile();
+
+        $this->resolver->resolve();
+
+        $this->assertSame($default, $this->config->getCacheFile());
+    }
+
+    public function testResolveCacheFileWithConfig()
+    {
+        $cacheFile = 'foo/bar.baz';
+
+        $this->config->setCacheFile($cacheFile);
+
+        $this->resolver->resolve();
+
+        $this->assertSame($cacheFile, $this->config->getCacheFile());
+    }
+
+    public function testResolveCacheFileWithOption()
+    {
+        $cacheFile = 'bar.baz';
+
+        $this->config->setCacheFile($cacheFile);
+        $this->resolver->setOption('cache-file', $cacheFile);
+
+        $this->resolver->resolve();
+
+        $this->assertSame($cacheFile, $this->config->getCacheFile());
+    }
+
+    public function testResolveCacheFileWithConfigAndOption()
+    {
+        $configCacheFile = 'foo/bar.baz';
+        $optionCacheFile = 'bar.baz';
+
+        $this->config->setCacheFile($configCacheFile);
+        $this->resolver->setOption('cache-file', $optionCacheFile);
+
+        $this->resolver->resolve();
+
+        $this->assertSame($optionCacheFile, $this->config->getCacheFile());
     }
 }

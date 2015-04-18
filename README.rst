@@ -3,11 +3,11 @@ PHP Coding Standards Fixer
 
 The PHP Coding Standards Fixer tool fixes *most* issues in your code when you
 want to follow the PHP coding standards as defined in the PSR-1 and PSR-2
-documents.
+documents and many more.
 
-If you are already using ``PHP_CodeSniffer`` to identify coding standards
-problems in your code, you know that fixing them by hand is tedious, especially
-on large projects. This tool does the job for you.
+If you are already using a linter to identify coding standards problems in your
+code, you know that fixing them by hand is tedious, especially on large
+projects. This tool does not only detect them, but also fixes them for you.
 
 Requirements
 ------------
@@ -56,7 +56,7 @@ To install PHP-CS-Fixer, install Composer and issue the following command:
 
     $ ./composer.phar global require fabpot/php-cs-fixer
 
-Then, make sure you have ``~/.composer/vendor/bin`` in your ``PATH``, and
+Then make sure you have ``~/.composer/vendor/bin`` in your ``PATH`` and
 you're good to go:
 
 .. code-block:: bash
@@ -117,14 +117,16 @@ Usage
 -----
 
 The ``fix`` command tries to fix as much coding standards
-problems as possible on a given file or directory:
+problems as possible on a given file or files in a given directory and its subdirectories:
 
 .. code-block:: bash
 
     php php-cs-fixer.phar fix /path/to/dir
     php php-cs-fixer.phar fix /path/to/file
 
-The ``--verbose`` option show applied fixers. When using ``txt`` format (default one) it will also displays progress notification.
+The ``--format`` option can be used to set the output format of the results; ``txt`` (default one), ``xml`` or ``json``.
+
+The ``--verbose`` option will show the applied fixers. When using the ``txt`` format it will also displays progress notifications.
 
 The ``--level`` option limits the fixers to apply on the
 project:
@@ -154,14 +156,14 @@ using ``-name_of_fixer``:
 
     php php-cs-fixer.phar fix /path/to/dir --fixers=-short_tag,-indentation
 
-When using combination with exact and blacklist fixers, apply exact fixers along with above blacklisted result:
+When using combinations of exact and blacklist fixers, applying exact fixers along with above blacklisted results:
 
 .. code-block:: bash
 
     php php-cs-fixer.phar fix /path/to/dir --fixers=linefeed,-short_tag
 
 A combination of ``--dry-run`` and ``--diff`` will
-display summary of proposed fixes, leaving your files unchanged.
+display a summary of proposed fixes, leaving your files unchanged.
 
 The command can also read from standard input, in which case it won't
 automatically fix anything:
@@ -175,7 +177,7 @@ Choose from the list of available fixers:
 * **psr0** [PSR-0]
                 Classes must be in a path that matches
                 their namespace, be at least one
-                namespace deep, and the class name
+                namespace deep and the class name
                 should match the file name.
 
 * **encoding** [PSR-1]
@@ -196,7 +198,7 @@ Choose from the list of available fixers:
 * **elseif** [PSR-2]
                 The keyword elseif should be used
                 instead of else if so that all control
-                keywords looks like single words.
+                keywords look like single words.
 
 * **eof_ending** [PSR-2]
                 A file must always end with an empty
@@ -267,6 +269,15 @@ Choose from the list of available fixers:
                 visibility; static MUST be declared
                 after the visibility.
 
+* **alias_functions** [symfony]
+                Master functions shall be used instead
+                of aliases.
+
+* **blankline_after_open_tag** [symfony]
+                Ensure there is no code on the same
+                line as the PHP open tag and it is
+                followed by a blankline.
+
 * **concat_without_spaces** [symfony]
                 Concatenation should be used without
                 spaces.
@@ -289,10 +300,6 @@ Choose from the list of available fixers:
                 Include and file path should be
                 divided with a single space. File path
                 should not be placed under brackets.
-
-* **join_function** [symfony]
-                Implode function should be used
-                instead of join function.
 
 * **list_commas** [symfony]
                 Remove trailing commas in list
@@ -324,8 +331,8 @@ Choose from the list of available fixers:
                 after object T_OBJECT_OPERATOR.
 
 * **operators_spaces** [symfony]
-                Operators should be arounded by at
-                least one space.
+                Binary operators should be arounded by
+                at least one space.
 
 * **phpdoc_align** [symfony]
                 All items of the @param, @throws,
@@ -335,6 +342,10 @@ Choose from the list of available fixers:
 * **phpdoc_indent** [symfony]
                 Docblocks should have the same
                 indentation as the documented subject.
+
+* **phpdoc_no_access** [symfony]
+                @access annotations should be omitted
+                from phpdocs.
 
 * **phpdoc_no_empty_return** [symfony]
                 @return void and @return null
@@ -370,7 +381,7 @@ Choose from the list of available fixers:
 
 * **phpdoc_trim** [symfony]
                 Phpdocs should start and end with
-                content, excluding the very fist and
+                content, excluding the very first and
                 last line of the docblocks.
 
 * **phpdoc_type_to_var** [symfony]
@@ -392,6 +403,10 @@ Choose from the list of available fixers:
                 An empty line feed should precede a
                 return statement.
 
+* **self_accessor** [symfony]
+                Inside a classy element "self" should
+                be preferred to the class name itself.
+
 * **single_array_no_trailing_comma** [symfony]
                 PHP single-line arrays should not have
                 trailing comma.
@@ -399,6 +414,10 @@ Choose from the list of available fixers:
 * **single_blank_line_before_namespace** [symfony]
                 There should be exactly one blank line
                 before a namespace declaration.
+
+* **single_quote** [symfony]
+                Convert double quotes to single quotes
+                for simple strings.
 
 * **spaces_before_semicolon** [symfony]
                 Single-line whitespace before closing
@@ -414,6 +433,15 @@ Choose from the list of available fixers:
 * **ternary_spaces** [symfony]
                 Standardize spaces around ternary
                 operator.
+
+* **trim_array_spaces** [symfony]
+                Arrays should be formatted like
+                function/method arguments, without
+                leading or trailing single line space.
+
+* **unary_operators_spaces** [symfony]
+                Unary operators should be placed
+                adjacent to their operands.
 
 * **unused_use** [symfony]
                 Unused use statements must be removed.
@@ -443,9 +471,16 @@ Choose from the list of available fixers:
 * **header_comment** [contrib]
                 Add, replace or remove header comment.
 
+* **long_array_syntax** [contrib]
+                Arrays should use the long syntax.
+
 * **multiline_spaces_before_semicolon** [contrib]
                 Multi-line whitespace before closing
                 semicolon are prohibited.
+
+* **newline_after_open_tag** [contrib]
+                Ensure there is no code on the same
+                line as the PHP open tag.
 
 * **no_blank_lines_before_namespace** [contrib]
                 There should be no blank lines before
@@ -468,6 +503,10 @@ Choose from the list of available fixers:
 * **phpdoc_var_to_type** [contrib]
                 @var should always be written as
                 @type.
+
+* **pre_increment** [contrib]
+                Pre incrementation/decrementation
+                should be used if possible.
 
 * **short_array_syntax** [contrib]
                 PHP arrays should use the PHP 5.4
@@ -509,10 +548,13 @@ fixed but without actually modifying them:
 Instead of using command line options to customize the fixer, you can save the
 project configuration in a ``.php_cs.dist`` file in the root directory
 of your project. The file must return an instance of ``Symfony\CS\ConfigInterface``,
-which lets you configure the fixers, the level, the files, and directories that
+which lets you configure the fixers, the level, the files and directories that
 need to be analyzed. You may also create ``.php_cs`` file, which is
-the local configuration that will be used instead of the project configuration, it
+the local configuration that will be used instead of the project configuration. It
 is a good practice to add that file into your ``.gitignore`` file.
+With the ``--config-file`` option you can specify the path to the
+``.php_cs`` file.
+
 The example below will add two contrib fixers to the default list of PSR2-level fixers:
 
 .. code-block:: php
@@ -529,7 +571,7 @@ The example below will add two contrib fixers to the default list of PSR2-level 
         ->finder($finder)
     ;
 
-If you want complete control over which fixers you use, you may use the empty level and
+If you want complete control over which fixers you use, you can use the empty level and
 then specify all fixers to be used:
 
 .. code-block:: php
@@ -576,26 +618,24 @@ The ``psr2`` level is set by default, you can also change the default level:
 
 In combination with these config and command line options, you can choose various usage.
 
-For example, default level is ``psr2``, but if you also don't want to use
+For example, the default level is ``psr2``, but if you don't want to use
 the ``psr0`` fixer, you can specify the ``--fixers="-psr0"`` option.
 
 But if you use the ``--fixers`` option with only exact fixers,
 only those exact fixers are enabled whether or not level is set.
 
-With the ``--config-file`` option you can specify the path to the
-``.php_cs`` file.
-
-By using ``--using-cache`` option you can set if caching
+By using ``--using-cache`` option with yes or no you can set if the caching
 mechanism should be used.
 
 Caching
 -------
 
 The caching mechanism is enabled by default. This will speed up further runs by
-fixing only files that were modified. Tool will fix all files if tool version
-changed or fixers list changed.
+fixing only files that were modified since the last run. The tool will fix all
+files if the tool version has changed or the list of fixers has changed.
 Cache is supported only for tool downloaded as phar file or installed via
 composer.
+
 Cache can be disabled via ``--using-cache`` option or config file:
 
 .. code-block:: php
@@ -605,6 +645,46 @@ Cache can be disabled via ``--using-cache`` option or config file:
     return Symfony\CS\Config\Config::create()
         ->setUsingCache(false)
     ;
+
+Cache file can be specified via ``--cache-file`` option or config file:
+
+.. code-block:: php
+
+    <?php
+
+    return Symfony\CS\Config\Config::create()
+        ->setCacheFile(__DIR__.'/.php_cs.cache')
+    ;
+
+Using PHP CS Fixer on Travis
+----------------------------
+
+Require ``fabpot/php-cs-fixer`` as a `dev`` dependency:
+
+.. code-block:: bash
+
+    $ ./composer.phar require --dev fabpot/php-cs-fixer
+
+Create a build file to run ``php-cs-fixer`` on Travis. It's advisable to create a dedicated directory
+for PHP CS Fixer cache files and have Travis cache it between builds.
+
+.. code-block:: yml
+
+    language: php
+    php:
+        - 5.5
+    sudo: false
+    cache:
+        directories:
+            - "$HOME/.composer/cache"
+            - "$HOME/.php-cs-fixer"
+    before_script:
+        - mkdir -p "$HOME/.php-cs-fixer"
+    script:
+        - vendor/bin/php-cs-fixer fix --cache-file "$HOME/.php-cs-fixer/.php_cs.cache" --dry-run --diff --verbose
+
+Note: This will only trigger a build if you have a subscription for Travis
+or are using their free open source plan.
 
 Helpers
 -------

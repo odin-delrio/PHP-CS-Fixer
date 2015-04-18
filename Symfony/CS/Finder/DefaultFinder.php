@@ -50,6 +50,8 @@ class DefaultFinder extends Finder implements FinderInterface
     /**
      * Gets the directories that needs to be scanned for files to validate.
      *
+     * @param string $dir
+     *
      * @return array
      */
     protected function getDirs($dir)
@@ -62,7 +64,7 @@ class DefaultFinder extends Finder implements FinderInterface
      *
      * This is mainly useful for fixtures in unit tests.
      *
-     * @return array
+     * @return string[]
      */
     protected function getFilesToExclude()
     {

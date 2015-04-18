@@ -41,13 +41,9 @@ class VisibilityFixer extends AbstractFixer
                     $afterToken->setContent(' ');
                 }
             } elseif ('property' === $element['type']) {
-                $prevIndex = $tokens->getPrevTokenOfKind($index, array(';', ','));
-                $nextIndex = $tokens->getNextTokenOfKind($index, array(';', ','));
+                $prevIndex = $tokens->getPrevTokenOfKind($index, array(';', ',', '{'));
 
-                if (
-                    (!$prevIndex || !$tokens[$prevIndex]->equals(',')) &&
-                    (!$nextIndex || !$tokens[$nextIndex]->equals(','))
-                ) {
+                if (!$prevIndex || !$tokens[$prevIndex]->equals(',')) {
                     $this->overrideAttribs($tokens, $index, $this->grabAttribsBeforePropertyToken($tokens, $index));
                 }
             }
@@ -97,7 +93,7 @@ class VisibilityFixer extends AbstractFixer
     }
 
     /**
-     * Grab attributes before method token at gixen index.
+     * Grab attributes before method token at given index.
      *
      * It's a shorthand for grabAttribsBeforeToken method.
      *
@@ -131,7 +127,7 @@ class VisibilityFixer extends AbstractFixer
     }
 
     /**
-     * Grab attributes before property token at gixen index.
+     * Grab attributes before property token at given index.
      *
      * It's a shorthand for grabAttribsBeforeToken method.
      *
@@ -162,7 +158,7 @@ class VisibilityFixer extends AbstractFixer
     }
 
     /**
-     * Grab info about attributes before token at gixen index.
+     * Grab info about attributes before token at given index.
      *
      * @param Tokens $tokens          Tokens collection
      * @param int    $index           token index

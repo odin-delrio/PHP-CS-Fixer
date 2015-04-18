@@ -381,16 +381,17 @@ EOF;
     /**
      * @author Dariusz Rumiński <dariusz.ruminski@gmail.com>
      */
-    public function testLeaveCommaSeparatedPropertyAlone()
+    public function testFixCommaSeparatedProperty()
     {
         $expected = <<<'EOF'
 <?php
 class Foo
 {
-    public $foo;
+    public $foo1;
     private $foo2;
     protected $bar1, $bar2;
     public $baz1 = null, $baz2, $baz3 = false;
+    public $foo, $bar;
 }
 EOF;
 
@@ -398,10 +399,44 @@ EOF;
 <?php
 class Foo
 {
-    $foo;
+    $foo1;
     private $foo2;
     protected $bar1, $bar2;
     public $baz1 = null, $baz2, $baz3 = false;
+    var $foo, $bar;
+}
+EOF;
+
+        $this->makeTest($expected, $input);
+    }
+
+    public function testFixesVarDeclarationsWithArrayValue()
+    {
+        $expected = <<<'EOF'
+<?php
+class Foo
+{
+    public $foo1 = 1;
+    public $foo2a = array('foo');
+    public $foo2b = ['foo'];
+    public $foo3a = array('foo', 'bar');
+    public $foo3b = ['foo', 'bar'];
+    public $foo4a = 1a, $foo5a = array(1, 2, 3), $foo6a = 10;
+    public $foo4b = 1b, $foo5b = array(1, 2, 3), $foo6b = 10;
+}
+EOF;
+
+        $input = <<<'EOF'
+<?php
+class Foo
+{
+    var $foo1 = 1;
+    var $foo2a = array('foo');
+    var $foo2b = ['foo'];
+    var $foo3a = array('foo', 'bar');
+    var $foo3b = ['foo', 'bar'];
+    var $foo4a = 1a, $foo5a = array(1, 2, 3), $foo6a = 10;
+    var $foo4b = 1b, $foo5b = array(1, 2, 3), $foo6b = 10;
 }
 EOF;
 

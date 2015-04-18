@@ -69,7 +69,7 @@ class Psr0Fixer extends AbstractFixer implements ConfigAwareInterface
             if ($this->config) {
                 $dir = substr($dir, strlen(realpath($this->config->getDir())) + 1);
                 if (strlen($normNamespace) > strlen($dir)) {
-                    if (strlen($dir)) {
+                    if ('' !== $dir) {
                         $normNamespace = substr($normNamespace, -strlen($dir));
                     } else {
                         $normNamespace = '';
@@ -81,6 +81,7 @@ class Psr0Fixer extends AbstractFixer implements ConfigAwareInterface
             if (false === $dir) {
                 $dir = '';
             }
+
             $filename = basename($path, '.php');
 
             if ($classyName !== $filename) {
@@ -133,7 +134,7 @@ class Psr0Fixer extends AbstractFixer implements ConfigAwareInterface
      */
     public function getDescription()
     {
-        return 'Classes must be in a path that matches their namespace, be at least one namespace deep, and the class name should match the file name.';
+        return 'Classes must be in a path that matches their namespace, be at least one namespace deep and the class name should match the file name.';
     }
 
     /**
@@ -141,7 +142,9 @@ class Psr0Fixer extends AbstractFixer implements ConfigAwareInterface
      */
     public function supports(\SplFileInfo $file)
     {
-        if ('php' !== pathinfo($file->getFilename(), PATHINFO_EXTENSION)) {
+        $filenameParts = explode('.', $file->getBasename(), 2);
+
+        if (!isset($filenameParts[1]) || 'php' !== $filenameParts[1]) {
             return false;
         }
 

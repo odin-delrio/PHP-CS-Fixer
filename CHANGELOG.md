@@ -3,6 +3,54 @@ CHANGELOG for PHP CS Fixer
 
 This file contains changelogs for stable releases only.
 
+Changelog for v1.6.1
+--------------------
+
+* bug #1108 UnusedUseFixer - fix false positive when name is used as part of another namespace (gharlan)
+* bug #1114 Fixed PhpdocParamsFixer with malformed doc block (gharlan)
+* minor #1135 PhpdocTrimFixer - fix doc typo (localheinz)
+* minor #1093 Travis - test lowest dependencies (boekkooi)
+
+Changelog for v1.6
+------------------
+
+* feature #1089 Added NewlineAfterOpenTagFixer and BlanklineAfterOpenTagFixer (ceeram, keradus)
+* feature #1090 Added TrimArraySpacesFixer (jaredh159, keradus)
+* feature #1058 Added SingleQuoteFixer (gharlan)
+* feature #1059 Added LongArraySyntaxFixer (gharlan)
+* feature #1037 Added PhpdocScalarFixer (GrahamCampbell, keradus)
+* feature #1028 Add ListCommasFixer (keradus)
+* bug #1047 Utils::camelCaseToUnderscore - fix regexp (odin-delrio)
+* minor #1073 ShortTagFixer enhancement (gharlan)
+* minor #1079 Use LongArraySyntaxFixer for this repo (gharlan)
+* minor #1070 Tokens::isMonolithicPhp - remove unused T_CLOSE_TAG search (keradus)
+* minor #1049 OrderedUseFixer - grooming (keradus)
+
+Changelog for v1.5.2
+--------------------
+
+* bug #1025 Fixer - ignore symlinks (kix)
+* bug #1071 Psr0Fixer - fix bug for fixing file with long extension like .class.php (keradus)
+* bug #1080 ShortTagFixer - fix false positive (gharlan)
+* bug #1066 Php4ConstructorFixer - fix causing infinite recursion (mbeccati)
+* bug #1056 VisibilityFixer - fix T_VAR with multiple props (localheinz, keradus)
+* bug #1065 Php4ConstructorFixer - fix detection of a PHP4 parent constructor variant (mbeccati)
+* bug #1060 Tokens::isShortArray: tests and bugfixes (gharlan)
+* bug #1057 unused_use: fix false positive when name is only used as variable name (gharlan)
+
+Changelog for v1.5.1
+--------------------
+
+* bug #1054 VisibilityFixer - fix var with array value assigned (localheinz, keradus)
+* bug #1048 MultilineArrayTrailingCommaFixer, SingleArrayNoTrailingCommaFixer - using heredoc inside array not cousing to treat it as multiline array (keradus)
+* bug #1043 PhpdocToCommentFixer - also check other control structures, besides foreach (ceeram)
+* bug #1045 OrderedUseFixer - fix namespace order for trailing digits (rusitschka)
+* bug #1035 PhpdocToCommentFixer - Add static as valid keyword for structural element (ceeram)
+* bug #1020 BracesFixer - fix missing braces for nested if elseif else (malengrin)
+* minor #1036 Added php7 to travis build (fonsecas72)
+* minor #1026 Fix typo in ShortArraySyntaxFixer (tommygnr)
+* minor #1024 code grooming (keradus)
+
 Changelog for v1.5
 ------------------
 
